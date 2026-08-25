@@ -68,15 +68,27 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-// Health check endpoint
-app.get('/api/health', (_req: Request, res: Response) => {
+// Health check & Root endpoints
+const healthCheckHandler = (_req: Request, res: Response) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
     service: 'B&B Plastic Backend API',
     environment: process.env.NODE_ENV || 'development',
+    endpoints: {
+      health: '/api/health',
+      products: '/api/products',
+      categories: '/api/categories',
+      inquiries: '/api/inquiries',
+      auth: '/api/auth',
+      dashboard: '/api/dashboard',
+    },
   });
-});
+};
+
+app.get('/', healthCheckHandler);
+app.get('/health', healthCheckHandler);
+app.get('/api/health', healthCheckHandler);
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
