@@ -1,17 +1,20 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import { ICategory } from '../types/index.js';
 
-const categorySchema = new mongoose.Schema(
+const categorySchema = new Schema<ICategory>(
   {
     name: {
       type: String,
       required: [true, 'Category name is required'],
       unique: true,
       trim: true,
+      index: true,
     },
     slug: {
       type: String,
       unique: true,
       trim: true,
+      index: true,
     },
     description: {
       type: String,
@@ -26,8 +29,9 @@ const categorySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Auto-generate slug before saving
 categorySchema.pre('save', function (next) {
-  if (!this.slug) {
+  if (!this.slug && this.name) {
     this.slug = this.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
@@ -36,4 +40,4 @@ categorySchema.pre('save', function (next) {
   next();
 });
 
-export default mongoose.model('Category', categorySchema);
+export default mongoose.model<ICategory>('Category', categorySchema);

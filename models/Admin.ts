@@ -1,7 +1,8 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { IAdmin } from '../types/index.js';
 
-const adminSchema = new mongoose.Schema(
+const adminSchema = new Schema<IAdmin>(
   {
     name: {
       type: String,
@@ -10,26 +11,30 @@ const adminSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: [true, 'Admin email is required'],
+      required: [true, 'Email address is required'],
       unique: true,
       lowercase: true,
       trim: true,
+      index: true,
     },
     password: {
       type: String,
       required: [true, 'Password is required'],
       minlength: 6,
+      select: true,
     },
     role: {
       type: String,
-      enum: ['Super Admin', 'Operations Admin', 'Sales Admin'],
       default: 'Super Admin',
+    },
+    lastLogin: {
+      type: Date,
     },
   },
   { timestamps: true }
 );
 
-// Hash password prior to saving
+// Hash password with bcrypt before saving
 adminSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(12);
@@ -37,9 +42,11 @@ adminSchema.pre('save', async function (next) {
   next();
 });
 
-// Compare password helper
-adminSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+// Instance method to compare password
+adminSchema.methods.comparePassword = async function (
+  candidatePassword: string
+): Promise<boolean> {
+  return bcrypt.compare(candidatePassword, this.password);
 };
 
-export default mongoose.model('Admin', adminSchema);
+export default mongoose.model<IAdmin>('Admin', adminSchema);

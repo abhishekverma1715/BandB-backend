@@ -1,6 +1,7 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import { IProduct } from '../types/index.js';
 
-const productSchema = new mongoose.Schema(
+const productSchema = new Schema<IProduct>(
   {
     name: {
       type: String,
@@ -11,6 +12,7 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Category is required'],
       trim: true,
+      index: true,
     },
     grade: {
       type: String,
@@ -47,11 +49,13 @@ const productSchema = new mongoose.Schema(
       type: String,
       unique: true,
       trim: true,
+      index: true,
     },
     stock: {
       type: String,
       enum: ['in-stock', 'low-stock', 'out-of-stock'],
       default: 'in-stock',
+      index: true,
     },
     discountPercent: {
       type: Number,
@@ -70,9 +74,13 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Generate slug before saving if not present
+// Compound and text indexes for fast search & filtering
+productSchema.index({ category: 1, stock: 1 });
+productSchema.index({ name: 'text', description: 'text', grade: 'text' });
+
+// Auto-generate slug before saving if not supplied
 productSchema.pre('save', function (next) {
-  if (!this.slug) {
+  if (!this.slug && this.name) {
     this.slug = this.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
@@ -81,4 +89,4 @@ productSchema.pre('save', function (next) {
   next();
 });
 
-export default mongoose.model('Product', productSchema);
+export default mongoose.model<IProduct>('Product', productSchema);
