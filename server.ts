@@ -35,19 +35,24 @@ app.use(compression());
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
+  'https://band-b-rho.vercel.app',
   process.env.CLIENT_URL,
 ].filter(Boolean) as string[];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      // Allow requests with no origin (mobile apps, curl, server-to-server)
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(null, true); // Allow during production preview
+        // Allow all origins during early production (remove once stable)
+        callback(null, true);
       }
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
