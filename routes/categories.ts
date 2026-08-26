@@ -87,14 +87,24 @@ router.put('/:id', protect, async (req: AuthRequest, res: Response): Promise<voi
     }
 
     const query = getCategoryQuery(String(req.params.id));
+    const existingCategory = await Category.findOne(query);
+
+    if (!existingCategory) {
+      res.status(404).json({ error: 'Category not found' });
+      return;
+    }
+
+    const oldName = existingCategory.name;
+    const newName = parseResult.data.name?.trim();
+
     const category = await Category.findOneAndUpdate(query, parseResult.data, {
       new: true,
       runValidators: true,
     }).lean();
 
-    if (!category) {
-      res.status(404).json({ error: 'Category not found' });
-      return;
+    // If category name was updated, cascade change to all assigned products
+    if (newName && oldName && oldName !== newName) {
+      await Product.updateMany({ category: oldName }, { category: newName });
     }
 
     res.json(category);

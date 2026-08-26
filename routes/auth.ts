@@ -141,4 +141,117 @@ router.post('/logout', (_req: Request, res: Response): void => {
   res.json({ success: true, message: 'Logged out successfully.' });
 });
 
+// Zod Validation for profile update
+const updateProfileSchema = z.object({
+  name: z.string().min(2, 'Admin display name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email address'),
+});
+
+// Zod Validation for password update
+const updatePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(6, 'New password must be at least 6 characters'),
+});
+
+// @desc    Update admin display name & email
+// @route   PUT /api/auth/profile
+// @access  Private (Admin)
+router.put('/profile', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const parseResult = updateProfileSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(400).json({
+        success: false,
+        error: parseResult.error.issues[0]?.message || 'Invalid input data',
+      });
+      return;
+    }
+
+    const { name, email } = parseResult.data;
+    const cleanEmail = email.toLowerCase().trim();
+
+    // Find admin by ID
+    let admin = await Admin.findById(req.adminId);
+    if (!admin && req.adminEmail) {
+      admin = await Admin.findOne({ email: req.adminEmail });
+    }
+
+    if (!admin) {
+      res.status(404).json({ success: false, error: 'Admin account not found.' });
+      return;
+    }
+
+    // Check if email changed and is taken by another account
+    if (cleanEmail !== admin.email) {
+      const existing = await Admin.findOne({ email: cleanEmail });
+      if (existing && existing._id.toString() !== admin._id.toString()) {
+        res.status(400).json({ success: false, error: 'Email address is already in use by another admin.' });
+        return;
+      }
+    }
+
+    admin.name = name.trim();
+    admin.email = cleanEmail;
+    await admin.save();
+
+    const token = generateToken(admin._id.toString(), admin.email, admin.role);
+
+    res.json({
+      success: true,
+      message: 'Admin profile updated successfully.',
+      _id: admin._id,
+      name: admin.name,
+      email: admin.email,
+      role: admin.role,
+      token,
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Error updating admin profile.' });
+  }
+});
+
+// @desc    Update admin password
+// @route   PUT /api/auth/password
+// @access  Private (Admin)
+router.put('/password', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const parseResult = updatePasswordSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(400).json({
+        success: false,
+        error: parseResult.error.issues[0]?.message || 'Invalid password data',
+      });
+      return;
+    }
+
+    const { currentPassword, newPassword } = parseResult.data;
+
+    let admin = await Admin.findById(req.adminId).select('+password');
+    if (!admin && req.adminEmail) {
+      admin = await Admin.findOne({ email: req.adminEmail }).select('+password');
+    }
+
+    if (!admin) {
+      res.status(404).json({ success: false, error: 'Admin account not found.' });
+      return;
+    }
+
+    const isMatch = await admin.comparePassword(currentPassword);
+    if (!isMatch) {
+      res.status(400).json({ success: false, error: 'Current password is incorrect.' });
+      return;
+    }
+
+    admin.password = newPassword;
+    await admin.save();
+
+    res.json({
+      success: true,
+      message: 'Password updated successfully.',
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Error updating password.' });
+  }
+});
+
 export default router;
