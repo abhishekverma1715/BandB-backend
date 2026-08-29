@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "node node_modules/tsx/dist/cli.mjs watch server.ts",
+    "test": "vitest run",
     "build": "node node_modules/typescript/bin/tsc",
     "postinstall": "node node_modules/typescript/bin/tsc",
     "start": "node dist/server.js",
@@ -35,7 +36,11 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@types/supertest": "^7.2.1",
+    "mongodb-memory-server": "^11.2.0",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.11"
   },
   "engines": {
     "node": ">=18.0.0"
