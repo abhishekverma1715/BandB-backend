@@ -4,17 +4,9 @@ import { z } from 'zod';
 import Inquiry from '../models/Inquiry.js';
 import { protect } from '../middleware/auth.js';
 import { AuthRequest } from '../types/index.js';
+import { buildQueryByIdOrField } from '../utils/queryHelpers.js';
 
 const router = express.Router();
-
-// Helper to query inquiry by MongoDB _id OR custom inquiryId
-const getInquiryQuery = (idParam: string) => {
-  if (!idParam) return { _id: null };
-  if (mongoose.isValidObjectId(idParam)) {
-    return { $or: [{ _id: new mongoose.Types.ObjectId(idParam) }, { inquiryId: idParam }] };
-  }
-  return { inquiryId: idParam };
-};
 
 // Zod Validation Schemas
 const submitInquirySchemaZod = z.object({
@@ -104,7 +96,7 @@ router.get('/', protect, async (req: AuthRequest, res: Response): Promise<void> 
 // @access  Private (Admin)
 router.get('/:id', protect, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const query = getInquiryQuery(String(req.params.id));
+    const query = buildQueryByIdOrField(String(req.params.id), 'inquiryId');
     const inquiry = await Inquiry.findOne(query).lean();
 
     if (!inquiry) {
@@ -131,7 +123,7 @@ router.patch('/:id/status', protect, async (req: AuthRequest, res: Response): Pr
       return;
     }
 
-    const query = getInquiryQuery(String(req.params.id));
+    const query = buildQueryByIdOrField(String(req.params.id), 'inquiryId');
     const inquiry = await Inquiry.findOneAndUpdate(
       query,
       { status: parseResult.data.status },
@@ -162,7 +154,7 @@ router.post('/:id/notes', protect, async (req: AuthRequest, res: Response): Prom
       return;
     }
 
-    const query = getInquiryQuery(String(req.params.id));
+    const query = buildQueryByIdOrField(String(req.params.id), 'inquiryId');
     const inquiry = await Inquiry.findOne(query);
 
     if (!inquiry) {
@@ -188,7 +180,7 @@ router.post('/:id/notes', protect, async (req: AuthRequest, res: Response): Prom
 // @access  Private (Admin)
 router.delete('/:id', protect, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const query = getInquiryQuery(String(req.params.id));
+    const query = buildQueryByIdOrField(String(req.params.id), 'inquiryId');
     const inquiry = await Inquiry.findOneAndDelete(query).lean();
 
     if (!inquiry) {
