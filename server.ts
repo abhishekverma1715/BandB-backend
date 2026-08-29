@@ -45,9 +45,11 @@ app.use(
       // Allow requests with no origin (mobile apps, curl, server-to-server)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
-      } else {
-        // Allow all origins during early production (remove once stable)
+      } else if (process.env.NODE_ENV !== 'production') {
+        // Allow all origins during development/testing
         callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
       }
     },
     credentials: true,
