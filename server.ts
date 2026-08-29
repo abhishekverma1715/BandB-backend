@@ -123,8 +123,10 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`🚀 B&B Plastic Backend (TypeScript) running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`🚀 B&B Plastic Backend (TypeScript) running on port ${PORT}`);
+  });
+}
 
 export default app;
