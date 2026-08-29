@@ -102,4 +102,4 @@ inquirySchema.pre('save', async function (next) {
   next();
 });
 
-export default mongoose.model<IInquiry>('Inquiry', inquirySchema);
+export default mongoose.models.Inquiry || mongoose.model<IInquiry>('Inquiry', inquirySchema);

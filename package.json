@@ -9,7 +9,8 @@
     "build": "node node_modules/typescript/bin/tsc",
     "postinstall": "node node_modules/typescript/bin/tsc",
     "start": "node dist/server.js",
-    "seed": "node node_modules/tsx/dist/cli.mjs seeder.ts"
+    "seed": "node node_modules/tsx/dist/cli.mjs seeder.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -35,7 +36,11 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@types/supertest": "^7.2.1",
+    "mongodb-memory-server": "^11.2.0",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.11"
   },
   "engines": {
     "node": ">=18.0.0"

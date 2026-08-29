@@ -89,4 +89,4 @@ productSchema.pre('save', function (next) {
   next();
 });
 
-export default mongoose.model<IProduct>('Product', productSchema);
+export default mongoose.models.Product || mongoose.model<IProduct>('Product', productSchema);
