@@ -9,7 +9,8 @@
     "build": "node node_modules/typescript/bin/tsc",
     "postinstall": "node node_modules/typescript/bin/tsc",
     "start": "node dist/server.js",
-    "seed": "node node_modules/tsx/dist/cli.mjs seeder.ts"
+    "seed": "node node_modules/tsx/dist/cli.mjs seeder.ts",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest"
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -31,11 +32,17 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.24.4",
     "tsx": "^4.23.12",
-    "typescript": "^7.0.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@types/jest": "^29.5.12",
+    "@types/supertest": "^7.2.1",
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^11.2.0",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.12",
+    "typescript": "^5.3.3"
   },
   "engines": {
     "node": ">=18.0.0"
