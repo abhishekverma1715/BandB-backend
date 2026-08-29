@@ -40,4 +40,4 @@ categorySchema.pre('save', function (next) {
   next();
 });
 
-export default mongoose.model<ICategory>('Category', categorySchema);
+export default mongoose.models.Category || mongoose.model<ICategory>('Category', categorySchema);

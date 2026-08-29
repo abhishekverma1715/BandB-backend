@@ -13,6 +13,12 @@ try {
 
 export const connectDB = async (): Promise<void> => {
   try {
+    if (!process.env.MONGODB_URI) {
+      if (process.env.NODE_ENV === 'test') {
+         return; // tests handle their own connection
+      }
+      throw new Error('MONGODB_URI is not defined');
+    }
     const conn = await mongoose.connect(process.env.MONGODB_URI as string);
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
