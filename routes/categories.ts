@@ -5,17 +5,9 @@ import Category from '../models/Category.js';
 import Product from '../models/Product.js';
 import { protect } from '../middleware/auth.js';
 import { AuthRequest } from '../types/index.js';
+import { buildQueryByIdOrField } from '../utils/queryHelpers.js';
 
 const router = express.Router();
-
-// Helper to query category by MongoDB _id OR slug
-const getCategoryQuery = (idParam: string) => {
-  if (!idParam) return { _id: null };
-  if (mongoose.isValidObjectId(idParam)) {
-    return { $or: [{ _id: new mongoose.Types.ObjectId(idParam) }, { slug: idParam }] };
-  }
-  return { slug: idParam };
-};
 
 const categorySchemaZod = z.object({
   name: z.string().min(2, 'Category name is required'),
@@ -86,7 +78,7 @@ router.put('/:id', protect, async (req: AuthRequest, res: Response): Promise<voi
       return;
     }
 
-    const query = getCategoryQuery(String(req.params.id));
+    const query = buildQueryByIdOrField(String(req.params.id));
     const existingCategory = await Category.findOne(query);
 
     if (!existingCategory) {
@@ -118,7 +110,7 @@ router.put('/:id', protect, async (req: AuthRequest, res: Response): Promise<voi
 // @access  Private (Admin)
 router.delete('/:id', protect, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const query = getCategoryQuery(String(req.params.id));
+    const query = buildQueryByIdOrField(String(req.params.id));
     const category = await Category.findOneAndDelete(query).lean();
 
     if (!category) {

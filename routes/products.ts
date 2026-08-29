@@ -4,17 +4,9 @@ import { z } from 'zod';
 import Product from '../models/Product.js';
 import { protect } from '../middleware/auth.js';
 import { AuthRequest } from '../types/index.js';
+import { buildQueryByIdOrField } from '../utils/queryHelpers.js';
 
 const router = express.Router();
-
-// Helper to query product by MongoDB _id OR slug
-const getProductQuery = (idParam: string) => {
-  if (!idParam) return { _id: null };
-  if (mongoose.isValidObjectId(idParam)) {
-    return { $or: [{ _id: new mongoose.Types.ObjectId(idParam) }, { slug: idParam }] };
-  }
-  return { slug: idParam };
-};
 
 // Zod Validation Schemas
 const productSchemaZod = z.object({
@@ -134,7 +126,7 @@ router.put('/:id', protect, async (req: AuthRequest, res: Response): Promise<voi
       return;
     }
 
-    const query = getProductQuery(String(req.params.id));
+    const query = buildQueryByIdOrField(String(req.params.id));
     const product = await Product.findOneAndUpdate(query, parseResult.data, {
       new: true,
       runValidators: true,
@@ -164,7 +156,7 @@ router.patch('/:id/stock', protect, async (req: AuthRequest, res: Response): Pro
       return;
     }
 
-    const query = getProductQuery(String(req.params.id));
+    const query = buildQueryByIdOrField(String(req.params.id));
     const product = await Product.findOneAndUpdate(
       query,
       { stock: parseResult.data.stock },
@@ -187,7 +179,7 @@ router.patch('/:id/stock', protect, async (req: AuthRequest, res: Response): Pro
 // @access  Private (Admin)
 router.delete('/:id', protect, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const query = getProductQuery(String(req.params.id));
+    const query = buildQueryByIdOrField(String(req.params.id));
     const product = await Product.findOneAndDelete(query).lean();
 
     if (!product) {
