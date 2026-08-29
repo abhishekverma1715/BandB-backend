@@ -14,9 +14,12 @@ const loginSchema = z.object({
 
 // Helper to generate 7-day JWT
 const generateToken = (id: string, email: string, role: string): string => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('FATAL ERROR: JWT_SECRET is not defined in environment variables');
+  }
   return jwt.sign(
     { id, email, role },
-    (process.env.JWT_SECRET as string) || 'bb-plastic-jwt-secret-key-2025',
+    process.env.JWT_SECRET,
     { expiresIn: '7d' }
   );
 };
