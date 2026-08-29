@@ -9,7 +9,8 @@
     "build": "node node_modules/typescript/bin/tsc",
     "postinstall": "node node_modules/typescript/bin/tsc",
     "start": "node dist/server.js",
-    "seed": "node node_modules/tsx/dist/cli.mjs seeder.ts"
+    "seed": "node node_modules/tsx/dist/cli.mjs seeder.ts",
+    "test": "tsx --test **/*.test.ts"
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",

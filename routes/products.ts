@@ -4,17 +4,9 @@ import { z } from 'zod';
 import Product from '../models/Product.js';
 import { protect } from '../middleware/auth.js';
 import { AuthRequest } from '../types/index.js';
+import { getProductQuery } from '../utils/queryHelpers.js';
 
 const router = express.Router();
-
-// Helper to query product by MongoDB _id OR slug
-const getProductQuery = (idParam: string) => {
-  if (!idParam) return { _id: null };
-  if (mongoose.isValidObjectId(idParam)) {
-    return { $or: [{ _id: new mongoose.Types.ObjectId(idParam) }, { slug: idParam }] };
-  }
-  return { slug: idParam };
-};
 
 // Zod Validation Schemas
 const productSchemaZod = z.object({
