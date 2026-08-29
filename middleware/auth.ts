@@ -29,9 +29,12 @@ export const protect = async (
   }
 
   try {
+    if (!process.env.JWT_SECRET) {
+      throw new Error('FATAL ERROR: JWT_SECRET is not defined in environment variables');
+    }
     const decoded = jwt.verify(
       token,
-      (process.env.JWT_SECRET as string) || 'bb-plastic-jwt-secret-key-2025'
+      process.env.JWT_SECRET
     ) as IJWTPayload;
 
     const admin = await Admin.findById(decoded.id).select('-password');
