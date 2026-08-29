@@ -78,7 +78,7 @@ router.get('/', protect, async (req: AuthRequest, res: Response): Promise<void> 
     }
 
     if (search) {
-      const q = String(search).trim();
+      const q = String(search).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       filter.$or = [
         { name: { $regex: q, $options: 'i' } },
         { company: { $regex: q, $options: 'i' } },
