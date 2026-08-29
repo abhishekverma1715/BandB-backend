@@ -55,7 +55,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     }
 
     if (search) {
-      const q = String(search).trim();
+      const q = String(search).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       filter.$or = [
         { name: { $regex: q, $options: 'i' } },
         { grade: { $regex: q, $options: 'i' } },
