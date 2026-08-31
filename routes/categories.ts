@@ -31,21 +31,29 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
   try {
     const categories = await Category.find().sort({ name: 1 }).lean();
 
-    // Populate dynamic product counts
-    const categoriesWithCount = await Promise.all(
-      categories.map(async (cat) => {
-        const count = await Product.countDocuments({ category: cat.name });
-        return {
-          _id: cat._id,
-          id: cat._id,
-          name: cat.name,
-          slug: cat.slug,
-          description: cat.description,
-          icon: cat.icon,
-          productCount: count,
-        };
-      })
+    // ⚡ Bolt: Optimize N+1 query by replacing loop with a single aggregation
+    // This reduces queries from O(N) to O(1) (just 2 queries total instead of N+1)
+    const productCounts = await Product.aggregate([
+      { $group: { _id: '$category', count: { $sum: 1 } } }
+    ]);
+
+    const countsMap = new Map(
+      productCounts.map((item) => [item._id, item.count])
     );
+
+    // Populate dynamic product counts
+    const categoriesWithCount = categories.map((cat) => {
+      const count = countsMap.get(cat.name) || 0;
+      return {
+        _id: cat._id,
+        id: cat._id,
+        name: cat.name,
+        slug: cat.slug,
+        description: cat.description,
+        icon: cat.icon,
+        productCount: count,
+      };
+    });
 
     res.json(categoriesWithCount);
   } catch (err: any) {
