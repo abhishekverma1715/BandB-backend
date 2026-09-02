@@ -29,23 +29,31 @@ const categorySchemaZod = z.object({
 // @access  Public
 router.get('/', async (_req: Request, res: Response): Promise<void> => {
   try {
+    // ⚡ Bolt Optimization: Replacing N+1 countDocuments() queries with a single aggregation
+    // This reduces database round-trips from (1 + N) to exactly 2 queries, significantly
+    // improving response times as the number of categories grows.
+
+    // 1. Fetch all categories
     const categories = await Category.find().sort({ name: 1 }).lean();
 
-    // Populate dynamic product counts
-    const categoriesWithCount = await Promise.all(
-      categories.map(async (cat) => {
-        const count = await Product.countDocuments({ category: cat.name });
-        return {
-          _id: cat._id,
-          id: cat._id,
-          name: cat.name,
-          slug: cat.slug,
-          description: cat.description,
-          icon: cat.icon,
-          productCount: count,
-        };
-      })
-    );
+    // 2. Fetch product counts for all categories in a single query
+    const productCounts = await Product.aggregate([
+      { $group: { _id: '$category', count: { $sum: 1 } } }
+    ]);
+
+    // 3. Create a map for O(1) lookups
+    const countMap = new Map(productCounts.map(item => [item._id, item.count]));
+
+    // 4. Map the dynamic product counts back to categories in memory
+    const categoriesWithCount = categories.map((cat) => ({
+      _id: cat._id,
+      id: cat._id,
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description,
+      icon: cat.icon,
+      productCount: countMap.get(cat.name) || 0,
+    }));
 
     res.json(categoriesWithCount);
   } catch (err: any) {
