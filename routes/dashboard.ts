@@ -5,7 +5,7 @@ import Category from '../models/Category.js';
 import { protect } from '../middleware/auth.js';
 import { AuthRequest, IDashboardStats } from '../types/index.js';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // @desc    Get aggregated dashboard stats for Admin command center
 // @route   GET /api/dashboard/stats

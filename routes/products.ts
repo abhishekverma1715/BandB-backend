@@ -5,7 +5,7 @@ import Product from '../models/Product.js';
 import { protect } from '../middleware/auth.js';
 import { AuthRequest } from '../types/index.js';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // Helper to query product by MongoDB _id OR slug
 const getProductQuery = (idParam: string) => {
