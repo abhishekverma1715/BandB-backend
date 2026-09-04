@@ -6,7 +6,7 @@ import Product from '../models/Product.js';
 import { protect } from '../middleware/auth.js';
 import { AuthRequest } from '../types/index.js';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // Helper to query category by MongoDB _id OR slug
 const getCategoryQuery = (idParam: string) => {
@@ -29,23 +29,31 @@ const categorySchemaZod = z.object({
 // @access  Public
 router.get('/', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const categories = await Category.find().sort({ name: 1 }).lean();
+    // ⚡ Bolt: Fetch all categories and product counts in parallel
+    // Replaces O(N) database queries (N+1 problem) with exactly 2 queries
+    const [categories, productCounts] = await Promise.all([
+      Category.find().sort({ name: 1 }).lean(),
+      Product.aggregate([
+        { $group: { _id: '$category', count: { $sum: 1 } } }
+      ])
+    ]);
+
+    // Create O(1) lookup map for product counts
+    const countMap = new Map<string, number>();
+    for (const group of productCounts) {
+      countMap.set(group._id, group.count);
+    }
 
     // Populate dynamic product counts
-    const categoriesWithCount = await Promise.all(
-      categories.map(async (cat) => {
-        const count = await Product.countDocuments({ category: cat.name });
-        return {
-          _id: cat._id,
-          id: cat._id,
-          name: cat.name,
-          slug: cat.slug,
-          description: cat.description,
-          icon: cat.icon,
-          productCount: count,
-        };
-      })
-    );
+    const categoriesWithCount = categories.map((cat) => ({
+      _id: cat._id,
+      id: cat._id,
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description,
+      icon: cat.icon,
+      productCount: countMap.get(cat.name) || 0,
+    }));
 
     res.json(categoriesWithCount);
   } catch (err: any) {
