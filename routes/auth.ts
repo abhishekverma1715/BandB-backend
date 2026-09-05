@@ -5,7 +5,7 @@ import Admin from '../models/Admin.js';
 import { protect } from '../middleware/auth.js';
 import { AuthRequest } from '../types/index.js';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
