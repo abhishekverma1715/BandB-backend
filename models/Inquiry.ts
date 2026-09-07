@@ -59,6 +59,7 @@ const inquirySchema = new Schema<IInquiry>(
       type: String,
       default: '',
       trim: true,
+      index: true,
     },
     quantity: {
       type: String,
