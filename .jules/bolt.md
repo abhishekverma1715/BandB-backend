@@ -1,0 +1,3 @@
+## 2024-05-18 - Replacing N+1 countDocuments() in Mongoose with .aggregate()
+**Learning:** Using `Model.countDocuments()` inside a `.map()` or `.forEach()` loop creates a severe N+1 query bottleneck because each iteration triggers a separate database round-trip. This scales very poorly in Mongoose as the collection grows.
+**Action:** When needing counts for multiple items, prefer using a single `.aggregate()` pipeline with a `$group` stage to fetch counts in one DB operation, then process or map the results in-memory.
