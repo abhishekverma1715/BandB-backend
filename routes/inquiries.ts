@@ -5,7 +5,7 @@ import Inquiry from '../models/Inquiry.js';
 import { protect } from '../middleware/auth.js';
 import { AuthRequest } from '../types/index.js';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // Helper to query inquiry by MongoDB _id OR custom inquiryId
 const getInquiryQuery = (idParam: string) => {
